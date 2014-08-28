@@ -1,0 +1,27 @@
+<?php
+/**
+ * @file
+ * Installation file for shield module
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function shield_full_uninstall() {
+  variable_del('shield_full_allow_cli');
+  variable_del('shield_full_user');
+  variable_del('shield_full_pass');
+  variable_del('shield_full_print');
+}
+
+/**
+ * Set variable in "shield_full_ignore".
+ */
+/***function shield_full_update_7146() {
+  $trail = array(
+    'title' => t('Trail variable added'),
+  );
+
+  // Save the trail as a variable
+  variable_set('shield_full_ignore', $trail);
+}***/

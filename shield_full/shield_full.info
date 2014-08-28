@@ -1,0 +1,10 @@
+name = PHP Authentication shield full
+description = Creates a general shield for the site
+core = 7.x
+version = "7.x-3.5-dev"
+core = "7.x"
+project = "Shield full"
+
+configure = admin/config/system/shield_full
+
+

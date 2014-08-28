@@ -1,0 +1,86 @@
+<?php
+/**
+ * @file
+ * Functions for shield module
+ */
+
+/**
+ * Implements hook_perm().
+ */
+function shield_full_permission() {
+  return array(
+    'administer shield' => array(
+      'title' => t('Administer shield full module'),
+      'description' => t('Perform administration tasks for shield full module.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function shield_full_menu() {
+  $items['admin/config/system/shield_full'] = array(
+    'title' => 'Shield full',
+    'description' => 'Manage the settings of PHP Authentication shield full.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('shield_full_admin_settings'),
+    'weight' => 10,
+    'access arguments' => array('administer shield full'),
+    'file' => 'shield_full.admin.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_boot().
+ */
+function shield_full_boot() {
+  $access = variable_get('shield_full_access', 1);
+  $pages = variable_get('shield_full_pages', '');
+  //$ignore = variable_get('shield_full_ignore', '');
+
+  // If for all pages except set URLs.
+  if (($access == 0) && shield_full_touch_url($pages)) {
+    return;
+  }
+  // If for all set URLs.
+  elseif (($access == 1) && !shield_full_touch_url($pages)) {
+    return;
+  }
+
+  $user = variable_get('shield_full_user', '');
+  if (!$user) {
+    return;
+  }
+
+  // allow Drush to bypass Shield full
+  if (drupal_is_cli() && variable_get('shield_full_allow_cli', 1) == 1) {
+    return;
+  }
+
+  $pass = variable_get('shield_full_pass', '');
+  if (!empty($_SERVER['PHP_AUTH_USER']) && isset($_SERVER['PHP_AUTH_PW'])
+    && $_SERVER['PHP_AUTH_USER'] == $user
+    && $_SERVER['PHP_AUTH_PW']   == $pass) {
+    return;
+  }
+
+  $print = variable_get('shield_full_print', 'Hello, user: [user], pass: [pass]!');
+  header(sprintf('WWW-Authenticate: Basic realm="%s"', strtr($print, array('[user]' => $user, '[pass]' => $pass))));
+  header('HTTP/1.0 401 Unauthorized');
+  exit;
+}
+
+/**
+ * Custom fucntion that touch current url with variacble: shield_full_ignore.
+ * returns TRUE if current url is in variable, FALSE in other cases
+ */
+function shield_full_touch_url($shield_full_pages){
+  if (!$shield_full_pages) {
+    $shield_full_pages = variable_get('shield_full_pages', '');
+  }
+  require_once("includes/path.inc");
+  return drupal_match_path($_GET['q'], $shield_full_pages);
+}
